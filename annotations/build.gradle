@@ -14,8 +14,6 @@ compileTestKotlin {
     }
 }
 
-ext.kotlin_version = '1.3.50'
-
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }

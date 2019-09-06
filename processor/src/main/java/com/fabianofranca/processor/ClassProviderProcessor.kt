@@ -46,21 +46,34 @@ class GenerateClassProviderProcessor : AbstractProcessor() {
 
         val className = "$simpleName$CLASS_SUFFIX"
 
-        val classProvider = ClassName("com.fabianofranca.annotationprocessing", "ClassProvider")
-        val classType = ClassName("", "Class")
+        val classProvider = ClassName(CLASS_PROVIDER_PACKAGE, CLASS_PROVIDER_NAME)
+        val classInstanceType = TypeCollection::classStarProjection.returnType.asTypeName()
 
         FileSpec.builder(packageName, className)
             .addType(
                 TypeSpec.classBuilder(className)
                     .addSuperinterface(classProvider)
-                    .primaryConstructor(FunSpec.constructorBuilder()
-                        .addParameter(ParameterSpec.builder("classInstance", classType)
-                            .defaultValue("$simpleName::class.java")
-                            .build())
-                        .build())
-                    .addProperty(PropertySpec.builder("classInstance", classType, KModifier.OVERRIDE)
-                        .initializer("classInstance")
-                        .build())
+                    .primaryConstructor(
+                        FunSpec.constructorBuilder()
+                            .addParameter(
+                                ParameterSpec.builder(
+                                    CLASS_PROVIDER_PROPERTY_NAME,
+                                    classInstanceType
+                                )
+                                    .defaultValue("$simpleName::class.java")
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .addProperty(
+                        PropertySpec.builder(
+                            CLASS_PROVIDER_PROPERTY_NAME,
+                            classInstanceType,
+                            KModifier.OVERRIDE
+                        )
+                            .initializer(CLASS_PROVIDER_PROPERTY_NAME)
+                            .build()
+                    )
                     .build()
             )
             .build()
@@ -76,10 +89,19 @@ class GenerateClassProviderProcessor : AbstractProcessor() {
         processingEnv.messager.printMessage(javax.tools.Diagnostic.Kind.ERROR, message)
     }
 
+    private interface TypeCollection {
+        val classStarProjection: Class<*>
+    }
+
     companion object {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
+
         private const val TARGET_DIRECTORY_NOT_FOUND =
             "Can't find the target directory for generated Kotlin files."
+
         private const val CLASS_SUFFIX = "ClassProvider"
+        private const val CLASS_PROVIDER_PACKAGE = "com.fabianofranca.annotationprocessing"
+        private const val CLASS_PROVIDER_NAME = "ClassProvider"
+        private const val CLASS_PROVIDER_PROPERTY_NAME = "classInstance"
     }
 }
